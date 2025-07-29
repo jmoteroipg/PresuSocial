@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Presupuesto de Social Ads</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and general body styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top to prevent content from being too centered on large screens */
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        /* Ensure the main container is centered and has max width */
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background-color: #ffffff;
+            border-radius: 12px; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            padding: 30px;
+            box-sizing: border-box;
+        }
+        /* Input and button styling */
+        input[type="number"],
+        input[type="text"] {
+            border: 1px solid #cbd5e0; /* Light gray border */
+            border-radius: 8px; /* Rounded corners for inputs */
+            padding: 10px 15px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease-in-out;
+        }
+        input[type="number"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #6366f1; /* Indigo focus border */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Light indigo shadow on focus */
+        }
+        button {
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+        }
+        button:hover {
+            transform: translateY(-1px); /* Slight lift on hover */
+        }
+        button:active {
+            transform: translateY(0); /* Press effect */
+        }
+        .btn-primary {
+            background-color: #4f46e5; /* Indigo */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca; /* Darker indigo */
+        }
+        .btn-danger {
+            background-color: #ef4444; /* Red */
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #dc2626; /* Darker red */
+        }
+        .btn-secondary {
+            background-color: #e2e8f0; /* Light gray */
+            color: #4a5568; /* Darker gray text */
+        }
+        .btn-secondary:hover {
+            background-color: #cbd5e0; /* Darker light gray */
+        }
+        /* Table styling */
+        .campaign-table th, .campaign-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0; /* Light border for rows */
+        }
+        .campaign-table th {
+            background-color: #f8fafc; /* Very light background for headers */
+            font-weight: 700;
+            color: #4a5568;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+        }
+        .campaign-table tbody tr:last-child td {
+            border-bottom: none; /* No border for the last row */
+        }
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .flex-col-mobile {
+                flex-direction: column;
+            }
+            .flex-col-mobile > * {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+            .campaign-table, .campaign-table thead, .campaign-table tbody, .campaign-table th, .campaign-table td, .campaign-table tr {
+                display: block;
+            }
+            .campaign-table thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            .campaign-table tr {
+                border: 1px solid #e2e8f0;
+                margin-bottom: 10px;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            .campaign-table td {
+                border: none;
+                position: relative;
+                padding-left: 50%;
+                text-align: right;
+            }
+            .campaign-table td:before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0;
+                width: 45%;
+                padding-left: 15px;
+                font-weight: bold;
+                text-align: left;
+                color: #4a5568;
+            }
+            .campaign-table td:last-child {
+                border-bottom: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4">
+    <div class="container bg-white p-8 rounded-xl shadow-lg">
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-8 text-center">Gestor de Presupuesto de Social Ads</h1>
+
+        <!-- Resumen de Presupuesto Section -->
+        <div class="mb-8 p-6 bg-indigo-50 rounded-lg border border-indigo-100">
+            <h2 class="text-2xl font-bold text-indigo-800 mb-4">Resumen de Presupuesto</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg">
+                <div class="flex justify-between items-center py-2 border-b border-indigo-200">
+                    <span class="font-semibold text-gray-700">Presupuesto General de la Cuenta:</span>
+                    <input type="number" id="totalBudgetInput" value="0" min="0" class="w-32 text-right font-bold text-indigo-700 bg-indigo-100 border-indigo-300">
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-indigo-200">
+                    <span class="font-semibold text-gray-700">Presupuesto Asignado a Campañas:</span>
+                    <span id="assignedBudget" class="font-bold text-green-600">0.00</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-indigo-200">
+                    <span class="font-semibold text-gray-700">Presupuesto Disponible:</span>
+                    <span id="availableBudget" class="font-bold text-blue-600">0.00</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-indigo-200">
+                    <span class="font-semibold text-gray-700">Número de Campañas Activas:</span>
+                    <span id="campaignCount" class="font-bold text-gray-800">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detalle de Campañas Section -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Detalle de Campañas</h2>
+            <div class="flex flex-col md:flex-row gap-4 mb-6 items-center">
+                <input type="text" id="campaignNameInput" placeholder="Nombre de la Campaña" class="flex-grow rounded-lg p-3 border border-gray-300 focus:ring-2 focus:ring-indigo-500">
+                <input type="number" id="campaignBudgetInput" placeholder="Presupuesto Asignado" min="0" value="0" class="w-full md:w-auto rounded-lg p-3 border border-gray-300 focus:ring-2 focus:ring-indigo-500">
+                <button id="addCampaignBtn" class="btn-primary w-full md:w-auto px-6 py-3 rounded-lg shadow-md hover:shadow-lg">Añadir Campaña</button>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg shadow-md">
+                <table class="min-w-full bg-white campaign-table">
+                    <thead>
+                        <tr>
+                            <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">Nombre de la Campaña</th>
+                            <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Presupuesto Asignado</th>
+                            <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="campaignList" class="divide-y divide-gray-200">
+                        <!-- Campaign rows will be added here by JavaScript -->
+                    </tbody>
+                </table>
+                <p id="noCampaignsMessage" class="text-center text-gray-500 py-4 hidden">No hay campañas añadidas aún.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get DOM elements
+        const totalBudgetInput = document.getElementById('totalBudgetInput');
+        const assignedBudgetSpan = document.getElementById('assignedBudget');
+        const availableBudgetSpan = document.getElementById('availableBudget');
+        const campaignCountSpan = document.getElementById('campaignCount');
+        const campaignNameInput = document.getElementById('campaignNameInput');
+        const campaignBudgetInput = document.getElementById('campaignBudgetInput');
+        const addCampaignBtn = document.getElementById('addCampaignBtn');
+        const campaignListTableBody = document.getElementById('campaignList');
+        const noCampaignsMessage = document.getElementById('noCampaignsMessage');
+
+        // Array to store campaign data
+        let campaigns = [];
+
+        // Function to format currency
+        const formatCurrency = (amount) => {
+            return new Intl.NumberFormat('es-AR', {
+                style: 'currency',
+                currency: 'ARS', // Assuming Argentine Pesos, adjust as needed
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
+        };
+
+        // Function to update summary values
+        const updateSummary = () => {
+            const totalBudget = parseFloat(totalBudgetInput.value) || 0;
+            const assignedBudget = campaigns.reduce((sum, campaign) => sum + campaign.budget, 0);
+            const availableBudget = totalBudget - assignedBudget;
+
+            assignedBudgetSpan.textContent = formatCurrency(assignedBudget);
+            availableBudgetSpan.textContent = formatCurrency(availableBudget);
+            campaignCountSpan.textContent = campaigns.length;
+
+            // Apply conditional styling for available budget
+            if (availableBudget < 0) {
+                availableBudgetSpan.classList.remove('text-blue-600', 'text-green-600');
+                availableBudgetSpan.classList.add('text-red-600');
+            } else if (availableBudget === 0) {
+                availableBudgetSpan.classList.remove('text-blue-600', 'text-red-600');
+                availableBudgetSpan.classList.add('text-green-600');
+            }
+            else {
+                availableBudgetSpan.classList.remove('text-red-600', 'text-green-600');
+                availableBudgetSpan.classList.add('text-blue-600');
+            }
+
+            // Show/hide "No campaigns" message
+            if (campaigns.length === 0) {
+                noCampaignsMessage.classList.remove('hidden');
+            } else {
+                noCampaignsMessage.classList.add('hidden');
+            }
+        };
+
+        // Function to render campaign list
+        const renderCampaigns = () => {
+            campaignListTableBody.innerHTML = ''; // Clear existing list
+            campaigns.forEach((campaign, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="py-3 px-4 text-gray-800" data-label="Nombre de la Campaña">${campaign.name}</td>
+                    <td class="py-3 px-4 text-gray-700" data-label="Presupuesto Asignado">${formatCurrency(campaign.budget)}</td>
+                    <td class="py-3 px-4" data-label="Acciones">
+                        <button class="btn-danger text-sm px-4 py-2 rounded-md" data-index="${index}">Eliminar</button>
+                    </td>
+                `;
+                campaignListTableBody.appendChild(row);
+            });
+            updateSummary();
+        };
+
+        // Event listener for adding a campaign
+        addCampaignBtn.addEventListener('click', () => {
+            const name = campaignNameInput.value.trim();
+            const budget = parseFloat(campaignBudgetInput.value);
+
+            if (name && !isNaN(budget) && budget >= 0) {
+                campaigns.push({ name, budget });
+                campaignNameInput.value = ''; // Clear input
+                campaignBudgetInput.value = '0'; // Reset budget input
+                renderCampaigns();
+            } else {
+                // Basic validation feedback
+                alert('Por favor, ingresa un nombre válido y un presupuesto no negativo para la campaña.');
+            }
+        });
+
+        // Event listener for removing a campaign (event delegation)
+        campaignListTableBody.addEventListener('click', (event) => {
+            if (event.target.classList.contains('btn-danger')) {
+                const index = parseInt(event.target.dataset.index);
+                if (!isNaN(index)) {
+                    campaigns.splice(index, 1); // Remove campaign from array
+                    renderCampaigns(); // Re-render the list
+                }
+            }
+        });
+
+        // Event listener for total budget input changes
+        totalBudgetInput.addEventListener('input', updateSummary);
+
+        // Initial render when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            updateSummary();
+            renderCampaigns(); // Render with initial empty state
+        });
+    </script>
+</body>
+</html>
